@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaunchGuard — Know the day a client's site silently breaks</title>
+<meta name="description" content="LaunchGuard watches the client pages you are responsible for and emails a plain-English alert when a technical change puts search visibility at risk — noindex, robots.txt, canonicals, redirects, SSL expiry.">
+<style>
+  :root{
+    --ink:#22303a; --muted:#5b6b76; --bg:#f7f4ec; --card:#ffffff; --line:#e3ded2;
+    --accent:#0e7c66; --accent-dark:#0a5f4e; --warn:#b3540e; --crit:#b3261e;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  a{color:var(--accent-dark)}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 20px}
+  header.site{padding:18px 0;border-bottom:1px solid var(--line);background:var(--bg);position:sticky;top:0;z-index:5}
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .logo{font-weight:800;font-size:22px;letter-spacing:-.02em;color:var(--ink);text-decoration:none}
+  .logo span{color:var(--accent)}
+  .nav nav a{margin:0 10px;color:var(--ink);text-decoration:none;font-size:15px}
+  .btn{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;padding:11px 20px;border-radius:10px;font-weight:650;font-size:15px;border:0;cursor:pointer}
+  .btn:hover{background:var(--accent-dark)}
+  .btn.secondary{background:transparent;color:var(--accent-dark);border:1.5px solid var(--accent)}
+  .btn.secondary:hover{background:#e8f3f0}
+  .hero{padding:64px 0 40px;text-align:center}
+  .hero h1{font-size:42px;line-height:1.15;letter-spacing:-.02em;margin:0 0 16px}
+  .hero p.sub{font-size:19px;color:var(--muted);max-width:760px;margin:0 auto 26px}
+  .hero .cta-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .trust{margin-top:18px;font-size:14px;color:var(--muted)}
+  section{padding:44px 0}
+  h2{font-size:29px;letter-spacing:-.01em;margin:0 0 8px;text-align:center}
+  .lede{text-align:center;color:var(--muted);max-width:720px;margin:0 auto 30px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+  .card h3{margin:0 0 8px;font-size:17px}
+  .card p{margin:0;color:var(--muted);font-size:15px}
+  .alert-sample{max-width:720px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--crit);border-radius:var(--radius);padding:24px 26px;box-shadow:0 6px 24px rgba(34,48,58,.06)}
+  .alert-sample .tag{display:inline-block;background:#fbeae8;color:var(--crit);font-weight:700;font-size:12px;padding:3px 9px;border-radius:20px;letter-spacing:.04em}
+  .alert-sample h3{margin:12px 0 6px;font-size:19px}
+  .alert-sample p{margin:6px 0;color:var(--ink);font-size:15.5px}
+  .alert-sample .muted{color:var(--muted);font-size:14px}
+  code{background:#eef1f3;border-radius:5px;padding:1px 6px;font-size:.92em}
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;counter-reset:step}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+  .step .n{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+  .step h3{margin:0 0 6px;font-size:16.5px}
+  .step p{margin:0;color:var(--muted);font-size:14.5px}
+  .check-box{max-width:680px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px}
+  .check-box label{display:block;font-weight:600;font-size:14.5px;margin:14px 0 6px}
+  .check-box input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;font-size:16px;background:#fff}
+  .check-box input:focus{outline:none;border-color:var(--accent)}
+  .check-box .fine{font-size:13.5px;color:var(--muted);margin-top:12px}
+  .founding{background:#123c33;color:#eafaf4;border-radius:var(--radius);padding:26px 30px;text-align:center;max-width:820px;margin:0 auto 30px}
+  .founding strong{color:#7fe3c3}
+  .founding a{color:#7fe3c3;font-weight:700}
+  .pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;align-items:stretch}
+  .price-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px;display:flex;flex-direction:column}
+  .price-card.pop{border:2px solid var(--accent)}
+  .price-card h3{margin:0;font-size:18px}
+  .price{font-size:38px;font-weight:800;letter-spacing:-.02em;margin:10px 0 2px}
+  .price small{font-size:15px;color:var(--muted);font-weight:500}
+  .price-card ul{list-style:none;padding:0;margin:16px 0 22px;flex:1}
+  .price-card li{padding:5px 0;color:var(--ink);font-size:15px}
+  .price-card li::before{content:"✓ ";color:var(--accent);font-weight:700}
+  .price-card .btn{text-align:center}
+  .pop-tag{align-self:flex-start;background:var(--accent);color:#fff;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.04em}
+  details{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 20px;max-width:760px;margin:0 auto 12px}
+  summary{font-weight:650;cursor:pointer;font-size:16px}
+  details p{color:var(--muted);margin:10px 0 2px;font-size:15px}
+  .banner{display:none;max-width:760px;margin:18px auto 0;background:#e8f6f1;border:1px solid var(--accent);color:var(--accent-dark);border-radius:var(--radius);padding:16px 20px;text-align:center;font-weight:600}
+  footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--muted);font-size:14px;text-align:center}
+  @media (max-width:640px){.hero h1{font-size:31px}.hero{padding:40px 0 24px}}
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap nav">
+    <a class="logo" href="./">Launch<span>Guard</span></a>
+    <nav>
+      <a href="#watch">What we watch</a>
+      <a href="#how">How it works</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="btn" href="#check">Run a free Launch Check</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="banner" id="banner-joined">Welcome aboard — your LaunchGuard subscription is active. Watch your inbox: your setup email is on its way, and we'll ask which pages to watch first.</div>
+  <div class="banner" id="banner-check">Request received — your free Launch Check is in the queue. The report lands in your inbox within one business day.</div>
+
+  <div class="hero">
+    <h1>Know the day a client's site silently breaks.<br>Not the month they notice.</h1>
+    <p class="sub">LaunchGuard watches the pages you are responsible for and emails you a plain-English alert when a technical change puts search visibility at risk — a <code>noindex</code> that appeared, a canonical that moved, a certificate about to expire. Every alert is verified by a second check before it reaches you. No false alarms, no dashboards to babysit.</p>
+    <div class="cta-row">
+      <a class="btn" href="#check">Run a free Launch Check</a>
+      <a class="btn secondary" href="#pricing">See founding pricing</a>
+    </div>
+    <p class="trust">Built by the team behind CatalogFix. LaunchGuard already watches our own store every 6 hours — we eat our own cooking.</p>
+  </div>
+
+  <section id="watch">
+    <h2>What we watch</h2>
+    <p class="lede">The silent changes that cost your clients search traffic — and cost you the awkward phone call. We report technical changes, never guesses about rankings.</p>
+    <div class="grid">
+      <div class="card"><h3>New noindex directives</h3><p>The most expensive silent accident in SEO: a page tells Google to drop it from results. We catch it in the HTML or the response headers, the day it happens.</p></div>
+      <div class="card"><h3>robots.txt changes</h3><p>A new rule blocks crawlers from a page that matters. We check the rules that apply to every monitored page — and explain them in plain English.</p></div>
+      <div class="card"><h3>Canonical changes</h3><p>When a canonical moves, search credit moves with it — including the classic disaster: canonicals still pointing at the staging domain after launch.</p></div>
+      <div class="card"><h3>Errors &amp; redirect problems</h3><p>Pages that stop loading (4xx/5xx), redirect loops, and chains that keep growing after a redesign or migration.</p></div>
+      <div class="card"><h3>SSL certificate expiry</h3><p>Warnings at 30, 14, and 7 days before a certificate expires — because an expired cert turns your client's site into a browser security warning.</p></div>
+      <div class="card"><h3>Sitemap drops</h3><p>A key page falls out of the sitemap after a rebuild. It can still be found — but you should know it happened.</p></div>
+      <div class="card"><h3>Title &amp; heading changes</h3><p>A plugin update rewrites the titles you optimised. We diff the title tag and main heading on every monitored page.</p></div>
+      <div class="card"><h3>HTTP → HTTPS</h3><p>If the insecure version of a page stops redirecting to the secure one, visitors and search engines can end up in the wrong place.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What an alert looks like</h2>
+    <p class="lede">No log files. No jargon. Something you can act on — or forward to your client as-is.</p>
+    <div class="alert-sample">
+      <span class="tag">CRITICAL</span>
+      <h3>Your client's services page now contains <code>noindex</code>.</h3>
+      <p>It did not contain this directive at the previous check. Left in place, search engines will remove this page from results.</p>
+      <p><strong>Check first:</strong> the page's SEO settings, then any plugin, theme, or settings change made in the last 24 hours.</p>
+      <p class="muted">Detected Tuesday 06:04 · Confirmed by a second check 06:05 · Page: /services/</p>
+    </div>
+  </section>
+
+  <section id="how">
+    <h2>How it works</h2>
+    <p class="lede">Set it up once. It watches while you do literally anything else.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><h3>Add the pages that matter</h3><p>Homepages, top services or products, checkout, contact — the pages a client would be upset to lose.</p></div>
+      <div class="step"><div class="n">2</div><h3>We record the baseline</h3><p>Each page's current configuration becomes the reference point. Planned redesign coming? Re-baseline in one click.</p></div>
+      <div class="step"><div class="n">3</div><h3>Checks run on schedule</h3><p>Daily on Solo, every 6 hours on Agency and Studio. Any change triggers a confirmation check before anything is sent.</p></div>
+      <div class="step"><div class="n">4</div><h3>You get the alert + weekly report</h3><p>Critical changes email immediately. Everything lands in a weekly summary written to forward to your client — with your logo on Studio plans.</p></div>
+    </div>
+  </section>
+
+  <section id="check">
+    <h2>The free Launch Check</h2>
+    <p class="lede">About to launch a site — or inherit one? Paste the URL. We run the launch-killer checks: staging noindex left on, robots.txt blocks, canonicals pointing at the wrong domain, redirect chains, SSL health, sitemap presence. A plain-English report, emailed within one business day. Free, no account, no card.</p>
+    <div class="check-box" style="text-align:center">
+      <p style="margin-top:0;font-size:16.5px">Two things is all it takes: <strong>the page URL</strong> and <strong>your email</strong>. The plain-English report comes back within one business day.</p>
+      <a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLSexFIj_KMnm571BJkGn1PnLmZ7RqDDVN26a7srkkewz24C-qA/viewform" target="_blank" rel="noopener" style="display:block;padding:15px 20px;font-size:16.5px">Request my free Launch Check →</a>
+      <p class="fine">One report per request. We check only the page you give us, we never edit anything, and we never share your details. Checking a page you don't own yet? That's exactly what pre-launch is for. Prefer email? Send the URL to <a href="mailto:drowsepaw@gmail.com?subject=LaunchGuard%20—%20free%20Launch%20Check">drowsepaw@gmail.com</a>.</p>
+    </div>
+  </section>
+
+  <section id="pricing">
+    <h2>Pricing</h2>
+    <p class="lede">Recurring protection for the work you've already sold. Cancel anytime.</p>
+    <div class="founding">
+      <strong>Founding cohort — 10 seats.</strong> The Agency plan at <strong>$29/mo, locked for life</strong>, for the first 10 agencies — in exchange for honest feedback and a testimonial when it earns one. When the seats are gone, they're gone.<br>
+      <a href="https://buy.stripe.com/4gM7sE5zjfer22EfQN3ZK04">Claim a founding seat →</a>
+    </div>
+    <div class="pricing">
+      <div class="price-card">
+        <h3>Solo</h3>
+        <div class="price">$19<small>/month</small></div>
+        <ul>
+          <li>3 websites</li>
+          <li>15 monitored pages</li>
+          <li>Daily checks</li>
+          <li>Email alerts (verified twice)</li>
+          <li>Weekly summary</li>
+        </ul>
+        <a class="btn secondary" href="https://buy.stripe.com/9B67sEbXH9U7bDe9sp3ZK01">Start with Solo</a>
+      </div>
+      <div class="price-card pop">
+        <span class="pop-tag">MOST AGENCIES</span>
+        <h3>Agency</h3>
+        <div class="price">$49<small>/month</small></div>
+        <ul>
+          <li>10 websites</li>
+          <li>50 monitored pages</li>
+          <li>Checks every 6 hours</li>
+          <li>Email alerts (verified twice)</li>
+          <li>Weekly summary</li>
+          <li>White-label reports available</li>
+        </ul>
+        <a class="btn" href="https://buy.stripe.com/00wfZae5Pgiv5eQ8ol3ZK02">Start with Agency</a>
+      </div>
+      <div class="price-card">
+        <h3>Studio</h3>
+        <div class="price">$99<small>/month</small></div>
+        <ul>
+          <li>25 websites</li>
+          <li>125 monitored pages</li>
+          <li>Checks every 6 hours</li>
+          <li>Email alerts (verified twice)</li>
+          <li>Weekly summary</li>
+          <li>White-label reports included</li>
+        </ul>
+        <a class="btn secondary" href="https://buy.stripe.com/4gM6oA4vf5DRaza0VT3ZK03">Start with Studio</a>
+      </div>
+    </div>
+    <p class="lede" style="margin-top:24px">Bigger portfolio? <a href="mailto:drowsepaw@gmail.com?subject=LaunchGuard%20custom%20portfolio">Ask about custom pricing</a>. Prefer annual? Two months free — subscribe monthly first and email us, we'll switch you over.</p>
+  </section>
+
+  <section id="faq">
+    <h2>Honest answers</h2>
+    <details>
+      <summary>Does LaunchGuard fix the problems it finds?</summary>
+      <p>No — LaunchGuard detects and explains. It never touches your clients' websites. Fixing stays with you (or your developer), which is exactly how agencies told us they want it. If you'd rather hand a fix off, tell us in a reply and we'll point you to people who can.</p>
+    </details>
+    <details>
+      <summary>Will it tell me if a page loses its Google ranking?</summary>
+      <p>No, and be wary of any tool that promises that. LaunchGuard reports <em>technical changes</em> — the things that cause ranking losses — the moment they happen, while they're still cheap to reverse.</p>
+    </details>
+    <details>
+      <summary>What if a change was planned — a redesign, a title rewrite?</summary>
+      <p>Mark it "expected" from the alert. That signal re-baselines, so you won't hear about it again. LaunchGuard is built to be quiet when nothing is wrong.</p>
+    </details>
+    <details>
+      <summary>Which websites does it work with?</summary>
+      <p>Any public website — WordPress, Shopify, Wix, custom builds. If a browser can open it, LaunchGuard can watch it. Extra Shopify-aware checks (products going unpublished, checkout reachability, policy pages) are rolling out to all plans.</p>
+    </details>
+    <details>
+      <summary>How do alerts reach me?</summary>
+      <p>By email, immediately for critical changes, after a confirmation re-check so a one-off glitch never wakes you up. Everything else rolls into the weekly summary.</p>
+    </details>
+    <details>
+      <summary>Can I cancel anytime?</summary>
+      <p>Yes. Subscriptions run through Stripe; cancel from the link in any payment email, or just email us and we'll do it for you. No retention scripts, no dark patterns.</p>
+    </details>
+  </section>
+
+  <footer>
+    <p><strong>LaunchGuard</strong> — a Drowsepaw product · Contact: <a href="mailto:drowsepaw@gmail.com">drowsepaw@gmail.com</a></p>
+    <p>We report technical changes. We never edit your clients' websites, and we never promise rankings — just the truth about what changed, while it's still easy to fix.</p>
+  </footer>
+</div>
+
+<script>
+  var q = new URLSearchParams(location.search);
+  if (q.get('joined')) document.getElementById('banner-joined').style.display = 'block';
+  if (q.get('check')) document.getElementById('banner-check').style.display = 'block';
+</script>
+</body>
+</html>
